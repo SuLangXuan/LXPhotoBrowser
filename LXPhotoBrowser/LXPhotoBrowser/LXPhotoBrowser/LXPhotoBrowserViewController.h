@@ -7,10 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
-
+#import "LXPhotoBrowserTransitionManger.h"
 /**
  查看照片大图的浏览器
  */
-@interface LXPhotoBrowserViewController : UIViewController
+@interface LXPhotoBrowserViewController : UIViewController<LXPhotoBrowserDismissDelegate>
 + (instancetype)LXPhotoBrowserViewControllerWithIndexPath:(NSIndexPath *)indexPath imgUrls:(NSArray *)imgUrls;
 @end

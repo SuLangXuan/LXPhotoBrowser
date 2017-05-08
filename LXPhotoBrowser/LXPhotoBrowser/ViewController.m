@@ -12,11 +12,13 @@
 #import "LXPhotoBrowserViewController.h"
 #import "LXPhotoBrowserTransitionManger.h"
 #import <SDWebImage/UIImageView+WebCache.h>
-@interface ViewController ()<UICollectionViewDelegate,UICollectionViewDataSource>
+@interface ViewController ()<UICollectionViewDelegate,UICollectionViewDataSource,LXPhotoBrowserPresentDelegate>
 /** 自定义的流水布局 */
 @property (nonatomic,strong)LXRuleWaterFlowLayout *lxRuleWaterFlowLayout;
 @property (nonatomic,strong)UICollectionView *waterCollectionView;
 @property (nonatomic,strong)NSArray *imgUrlArrs;
+/** 自定义转场动画的管理者 */
+@property (nonatomic,strong)LXPhotoBrowserTransitionManger *transitionManger;
 @end
 
 @implementation ViewController
@@ -55,11 +57,44 @@
 #pragma mark <UICollectionViewDelegate>
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath{
+    
     LXPhotoBrowserViewController *vc = [LXPhotoBrowserViewController LXPhotoBrowserViewControllerWithIndexPath:indexPath imgUrls:self.imgUrlArrs];
     vc.modalPresentationStyle = UIModalPresentationCustom;
-//    vc.transitioningDelegate = 
+    vc.transitioningDelegate = self.transitionManger;
+    
+    self.transitionManger.presentDelegate = self;
+    self.transitionManger.clickIndexPath = indexPath;
+    self.transitionManger.dismissDelegate = vc;
+    
     [self presentViewController:vc animated:YES completion:nil];
 }
+
+#pragma mark - LXPhotoBrowserPresentDelegate
+- (CGRect)getStartRectWithIndexPath:(NSIndexPath *)indexPath{
+    LXWaterItemCollectionViewCell *cell = (LXWaterItemCollectionViewCell *)[self.waterCollectionView cellForItemAtIndexPath:indexPath];
+    return [self.waterCollectionView convertRect:cell.frame toCoordinateSpace:[UIApplication sharedApplication].keyWindow];
+}
+
+- (CGRect)getEndRectWithIndexPath:(NSIndexPath *)indexPath{
+    UIImage *img = [[[SDWebImageManager sharedManager]imageCache] imageFromDiskCacheForKey:self.imgUrlArrs[indexPath.item]];
+    CGFloat width = [UIScreen mainScreen].bounds.size.width;
+    CGFloat h = width *img.size.height /img.size.width;
+    CGFloat y;
+    if (h > [UIScreen mainScreen].bounds.size.height) {
+        y = 0;
+        
+    }else{
+        y = ([UIScreen mainScreen].bounds.size.height - h)*0.5;
+    }
+    return CGRectMake(0, y, width, h);
+}
+
+- (UIImageView *)getAnimationImageViewWithIndexPath:(NSIndexPath *)indexPath{
+    LXWaterItemCollectionViewCell *cell = (LXWaterItemCollectionViewCell *)[self.waterCollectionView cellForItemAtIndexPath:indexPath];
+    return [[UIImageView alloc]initWithImage:cell.iconImgV.image];
+}
+
+
 
 - (UICollectionView *)waterCollectionView{
     if (!_waterCollectionView) {
@@ -79,6 +114,13 @@
         _lxRuleWaterFlowLayout.padding = 15;
     }
     return _lxRuleWaterFlowLayout;
+}
+
+- (LXPhotoBrowserTransitionManger *)transitionManger{
+    if (!_transitionManger) {
+        _transitionManger = [[LXPhotoBrowserTransitionManger alloc] init];
+    }
+    return _transitionManger;
 }
 
 - (NSArray *)imgUrlArrs{

@@ -8,7 +8,7 @@
 
 #import "LXPhotoBrowserViewController.h"
 #import "LXPhotoBrowserCollectionViewCell.h"
-
+#import "LXPhotoBrowserTransitionManger.h"
 @interface LXPhotoBrowserViewController ()<UICollectionViewDelegate,UICollectionViewDataSource>
 /** 点击图片的indexPath */
 @property (nonatomic,strong)NSIndexPath *clickIndexPath;
@@ -82,6 +82,20 @@
         });
     }];
 }
+
+#pragma mark - LXPhotoBrowserDismissDelegate
+- (NSIndexPath *)getCurrentIndexpathForDismissView{
+    LXPhotoBrowserCollectionViewCell *cell = (LXPhotoBrowserCollectionViewCell *)self.collectionView.visibleCells.lastObject;
+    return [self.collectionView indexPathForCell:cell];
+}
+
+- (UIImageView *)getImageViewForDismissView{
+    LXPhotoBrowserCollectionViewCell *cell = (LXPhotoBrowserCollectionViewCell *)self.collectionView.visibleCells.lastObject;
+    UIImageView *imgV = [[UIImageView alloc] initWithImage:cell.image];
+    imgV.frame = cell.imageView.frame;
+    return imgV;
+}
+
 
 - (UICollectionView *)collectionView{
     if (!_collectionView) {
